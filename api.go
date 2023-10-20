@@ -24,12 +24,14 @@ func (api *APIServer) createUser(c *gin.Context) {
 	err := json.NewDecoder(c.Request.Body).Decode(&user)
 	if err != nil {
 		fmt.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, "Internal Error Try again later")
 	}
 	userId := uuid.New()
 	user.ID = userId
 	hashPassword, err := HashPassword(user.Password)
 	if err != nil {
 		fmt.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, "Internal Error Try again later")
 	}
 	user.Password = hashPassword
 
