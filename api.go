@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 
 type APIServer struct {
 	Router *gin.Engine
+	Db     *sql.DB
 }
 
 func (api *APIServer) SetupRoutes() {
