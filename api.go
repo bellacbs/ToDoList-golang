@@ -1,9 +1,12 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type APIServer struct {
@@ -17,5 +20,18 @@ func (api *APIServer) SetupRoutes() {
 }
 
 func (api *APIServer) createUser(c *gin.Context) {
-	c.String(http.StatusOK, "Create User")
+	var user User
+	err := json.NewDecoder(c.Request.Body).Decode(&user)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	userId := uuid.New()
+	user.ID = userId
+	hashPassword, err := HashPassword(user.Password)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	user.Password = hashPassword
+
+	c.JSON(http.StatusOK, user)
 }
