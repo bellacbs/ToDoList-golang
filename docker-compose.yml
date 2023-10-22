@@ -2,6 +2,24 @@ version: '3.1'
 
 services:
 
+  go:
+    build:
+      context: .
+      dockerfile: Dockerfile-local
+    volumes:
+      - .:/app
+    ports:
+      - 3000:3000
+      - 3001:3001
+    environment:
+      - DATA_BASE_URL=root:admin@tcp(db:3306)/todolist
+      - DRIVER_NAME=mysql
+      - PORT=3000
+    depends_on:
+      - db
+    networks:
+      - mysql-network
+
   db:
     image: mysql
     restart: always

@@ -51,11 +51,8 @@ Additionally, it's good to have a code editor to work with, such as [VSCode](htt
 ```bash
 # Clone this repository
 
-# To create the database
-$ docker compose up
-
 # To start the project
-$ make run
+$ docker compose up
 
 # The server will start on port 3000 - access it on <http://localhost:3000>
 # incluir rotas
