@@ -1,9 +1,9 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -11,8 +11,8 @@ import (
 )
 
 type APIServer struct {
-	Router *gin.Engine
-	Db     *sql.DB
+	Router     *gin.Engine
+	repository Repository
 }
 
 func (api *APIServer) SetupRoutes() {
@@ -37,6 +37,12 @@ func (api *APIServer) createUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, "Internal Error Try again later")
 	}
 	user.Password = hashPassword
+
+	err = api.repository.RegisterUser(&user)
+	if err != nil {
+		log.Fatal(err)
+		c.JSON(http.StatusInternalServerError, "Internal Error Try again later")
+	}
 
 	c.JSON(http.StatusOK, user)
 }

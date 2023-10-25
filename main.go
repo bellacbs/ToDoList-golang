@@ -1,8 +1,8 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -10,18 +10,19 @@ import (
 )
 
 func main() {
-	dataBaseUrl := os.Getenv("DATA_BASE_URL")
-	driverName := os.Getenv("DRIVER_NAME")
 	port := os.Getenv("PORT")
 	api := APIServer{}
 	api.Router = gin.Default()
-	db, err := sql.Open(driverName, dataBaseUrl)
+	repository, err := NewMySqlStore()
 	if err != nil {
-		panic(err.Error())
+		log.Fatal(err)
 	}
-	api.Db = db
-	defer db.Close()
-	Migrations(api.Db)
+	api.repository = repository
+	// defer db.Close()
+	err = repository.Migrations()
+	if err != nil {
+		log.Fatal(err)
+	}
 	api.SetupRoutes()
 	api.Router.Run(fmt.Sprintf(":%s", port))
 }
