@@ -51,7 +51,7 @@ func (mysql *MySqlStore) GetUserByEmail(email string) (*User, error) {
 	defer rows.Close()
 	if rows.Next() {
 		var user User
-		err := rows.Scan(&user.ID, &user.Email, &user.Name, &user.Password)
+		err := rows.Scan(&user.ID, &user.Name, &user.Email, &user.Password)
 		if err != nil {
 			return nil, err
 		}

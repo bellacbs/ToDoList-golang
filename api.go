@@ -20,6 +20,10 @@ func (api *APIServer) SetupRoutes() {
 	usersGroup := api.Router.Group("/users")
 	usersGroup.POST("/signup", api.createUser)
 	usersGroup.POST("/login", api.loginUser)
+
+	tasksGroup := api.Router.Group("/tasks")
+	tasksGroup.Use(api.requireTokenAuthorization())
+	tasksGroup.POST("/create", api.createTask)
 }
 
 func (api *APIServer) createUser(c *gin.Context) {
@@ -100,4 +104,50 @@ func (api *APIServer) loginUser(c *gin.Context) {
 	}
 	userResponse.Token = token
 	c.JSON(http.StatusOK, userResponse)
+}
+
+func (api *APIServer) createTask(c *gin.Context) {
+	var createTaskDTO CreateTaskDTO
+	err := json.NewDecoder(c.Request.Body).Decode(&createTaskDTO)
+	if err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, "Internal Error Try again later")
+		return
+	}
+	missingFields := createTaskDTO.CheckEmptyKeyAndValue()
+	if missingFields != nil {
+		c.JSON(http.StatusConflict, HandleError{Code: http.StatusConflict, Message: missingFields})
+		return
+	}
+
+	fmt.Println(createTaskDTO)
+}
+func (api *APIServer) requireTokenAuthorization() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		tokenString := c.GetHeader("authorization")
+		if tokenString == "" {
+			c.JSON(http.StatusInternalServerError, HandleError{Code: http.StatusUnauthorized, Message: []string{"Invalid Token"}})
+			c.Abort()
+			return
+		}
+		user, err := CheckToken(tokenString)
+		if err != nil {
+			fmt.Println(err.Error())
+			c.JSON(http.StatusInternalServerError, HandleError{Code: http.StatusInternalServerError, Message: []string{err.Error()}})
+		}
+		userDB, err := api.repository.GetUserByEmail(user.Email)
+		if err != nil {
+			fmt.Println(err.Error())
+			c.JSON(http.StatusInternalServerError, HandleError{Code: http.StatusInternalServerError, Message: []string{"Error To generate  token try again later"}})
+			c.Abort()
+			return
+		}
+		if userDB == nil {
+			c.JSON(http.StatusInternalServerError, HandleError{Code: http.StatusInternalServerError, Message: []string{"User doesn't exist"}})
+			c.Abort()
+			return
+		}
+		c.Set("user", user)
+		c.Next()
+	}
 }
