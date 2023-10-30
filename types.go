@@ -22,7 +22,7 @@ type CreateUserDTO struct {
 
 type UserLoginDTO struct {
 	Email    string
-	password string
+	Password string
 }
 
 type UserResponseDTO struct {

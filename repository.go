@@ -43,6 +43,20 @@ func (mysql *MySqlStore) RegisterUser(user *User) error {
 }
 
 func (mysql *MySqlStore) GetUserByEmail(email string) (*User, error) {
+	query := `select * from Users where email=?`
+	rows, err := mysql.db.Query(query, email)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	if rows.Next() {
+		var user User
+		err := rows.Scan(&user.ID, &user.Email, &user.Name, &user.Password)
+		if err != nil {
+			return nil, err
+		}
+		return &user, nil
+	}
 	return nil, nil
 }
 

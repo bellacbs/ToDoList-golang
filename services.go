@@ -16,9 +16,14 @@ func HashPassword(password string) (string, error) {
 	return string(bytes), err
 }
 
-func CheckPasswordHash(hashPassword string, password string) bool {
+func CheckPasswordHash(hashPassword string, password string) error {
+
 	err := bcrypt.CompareHashAndPassword([]byte(hashPassword), []byte(password))
-	return err == nil
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
+	}
+	return nil
 }
 
 func GenerateToken(user *UserResponseDTO) (string, error) {

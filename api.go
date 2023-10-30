@@ -70,6 +70,34 @@ func (api *APIServer) loginUser(c *gin.Context) {
 	if err != nil {
 		fmt.Println(err.Error())
 		c.JSON(http.StatusInternalServerError, "Internal Error Try again later")
+		return
 	}
-	c.JSON(http.StatusOK, "login")
+	missingFields := userLoginDTO.CheckEmptyKeyAndValue()
+	if missingFields != nil {
+		c.JSON(http.StatusConflict, HandleError{Code: http.StatusConflict, Message: missingFields})
+		return
+	}
+	user, err := api.repository.GetUserByEmail(userLoginDTO.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, HandleError{Code: http.StatusInternalServerError, Message: []string{"Internal Error Try again later"}})
+		return
+	}
+	if user == nil {
+		c.JSON(http.StatusInternalServerError, HandleError{Code: http.StatusInternalServerError, Message: []string{"User doesn't exist"}})
+		return
+	}
+	err = CheckPasswordHash(user.Password, userLoginDTO.Password)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, HandleError{Code: http.StatusUnauthorized, Message: []string{"Incorrect Password"}})
+		return
+	}
+	userResponse := UserResponseDTO{ID: user.ID, Email: user.Email, Name: user.Name}
+	token, err := GenerateToken(&userResponse)
+	if err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, HandleError{Code: http.StatusInternalServerError, Message: []string{"Error To generate  token try again later"}})
+		return
+	}
+	userResponse.Token = token
+	c.JSON(http.StatusOK, userResponse)
 }
