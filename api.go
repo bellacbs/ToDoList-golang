@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -23,28 +23,45 @@ func (api *APIServer) SetupRoutes() {
 }
 
 func (api *APIServer) createUser(c *gin.Context) {
-	var user User
-	err := json.NewDecoder(c.Request.Body).Decode(&user)
+	var createUserDTO CreateUserDTO
+	err := json.NewDecoder(c.Request.Body).Decode(&createUserDTO)
 	if err != nil {
 		fmt.Println(err.Error())
 		c.JSON(http.StatusInternalServerError, "Internal Error Try again later")
+		return
+	}
+	missingFields := createUserDTO.CheckEmptyKeyAndValue()
+	if missingFields != nil {
+		c.JSON(http.StatusConflict, HandleError{Code: http.StatusConflict, Message: missingFields})
+		return
 	}
 	userId := uuid.New()
-	user.ID = userId
-	hashPassword, err := HashPassword(user.Password)
+	userResponse := UserResponseDTO{ID: userId, Email: createUserDTO.Email, Name: createUserDTO.Name}
+	token, err := GenerateToken(&userResponse)
+	if err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, HandleError{Code: http.StatusInternalServerError, Message: []string{"Error To generate  token try again later"}})
+		return
+	}
+	userResponse.Token = token
+	hashPassword, err := HashPassword(createUserDTO.Password)
 	if err != nil {
 		fmt.Println(err.Error())
 		c.JSON(http.StatusInternalServerError, "Internal Error Try again later")
+		return
 	}
+	user := User{ID: userId, Email: createUserDTO.Email, Name: createUserDTO.Name, Password: hashPassword}
 	user.Password = hashPassword
-
 	err = api.repository.RegisterUser(&user)
 	if err != nil {
-		log.Fatal(err)
-		c.JSON(http.StatusInternalServerError, "Internal Error Try again later")
+		if strings.Contains(err.Error(), "Duplicate entry") {
+			c.JSON(http.StatusConflict, HandleError{Code: http.StatusConflict, Message: []string{"Email have already exist"}})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, HandleError{Code: http.StatusInternalServerError, Message: []string{"Internal Error Try again later"}})
+		return
 	}
-
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, userResponse)
 }
 
 func (api *APIServer) loginUser(c *gin.Context) {

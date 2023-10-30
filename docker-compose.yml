@@ -15,6 +15,7 @@ services:
       - DATA_BASE_URL=root:admin@tcp(db:3306)/todolist
       - DRIVER_NAME=mysql
       - PORT=3000
+      - JWT_SECRET_KEY=0f99e5ac-76bd-11ee-b962-0242ac120002-0f99e5ac-76bd-11ee-b962-0242ac120002-0f99e5ac-76bd-11ee-b962-0242ac120002
     depends_on:
       - db
     networks:
