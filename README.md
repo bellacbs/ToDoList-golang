@@ -23,22 +23,23 @@ The following libraries and languages were used in the project's construction:
 
 <h2 id="funciona">:heavy_check_mark: What works</h2>
 
-* Register User.;</br>
+* Register User;</br>
+* User Login;</br>
+* User Authentication;</br>
+* Register tasks;</br>
 * Docker compose;</br>
+* project image Docker;</br>
 * Migrations for creating database tables;</br>
 
  
 <h2 id="pendente">:construction: In development</h2>
 
 - [x] Add more validations.
-- [x] Use environment variables..
 - [x] User registration persistence in the database.
-- [x] User Login.
-- [x] User Authentication.
-- [x] Register tasks.
-- [x] Edit tasks.
+- [x] Get Task By Id of the own user.
+- [x] Edit tasks of the own user.
 - [x] View all tasks of the own user.
-- [x] project image Docker.
+- [x] Clean Architecture.
 
 <h2 id="requisitos">:leftwards_arrow_with_hook: Prerequisites</h2>
 
