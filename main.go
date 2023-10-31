@@ -18,7 +18,6 @@ func main() {
 		log.Fatal(err)
 	}
 	api.repository = repository
-	// defer db.Close()
 	err = repository.Migrations()
 	if err != nil {
 		log.Fatal(err)

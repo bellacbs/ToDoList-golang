@@ -8,6 +8,7 @@ import (
 type Repository interface {
 	RegisterUser(*User) error
 	GetUserByEmail(string) (*User, error)
+	CreateTask(task *Task) error
 }
 
 type MySqlStore struct {
@@ -58,6 +59,15 @@ func (mysql *MySqlStore) GetUserByEmail(email string) (*User, error) {
 		return &user, nil
 	}
 	return nil, nil
+}
+
+func (mysql *MySqlStore) CreateTask(task *Task) error {
+	query := `insert into Tasks (id, title, description, startDate, endDate, userId) values (?,?,?,?,?,?)`
+	_, err := mysql.db.Query(query, task.ID, task.Title, task.Description, task.StartDate, task.EndDate, task.UserId)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (mysql *MySqlStore) Migrations() error {

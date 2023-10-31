@@ -37,6 +37,15 @@ type HandleError struct {
 	Message []string `json:"message"`
 }
 
+type Task struct {
+	ID          uuid.UUID `json:"id"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	StartDate   time.Time `json:"startDate"`
+	EndDate     time.Time `json:"endDate"`
+	UserId      uuid.UUID `json:"userId"`
+}
+
 type CreateTaskDTO struct {
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
@@ -60,4 +69,19 @@ func (createTaskDTO *CreateTaskDTO) CheckEmptyKeyAndValue() []string {
 	valuesObject := reflect.ValueOf(createTaskDTO)
 	missingFields := CheckEmptyKeyAndValue(valuesObject)
 	return missingFields
+}
+
+func (task *Task) CheckDates() []string {
+	erros := []string{}
+	currentDate := time.Now()
+	if currentDate.After(task.StartDate) {
+		erros = append(erros, "Current Date is over then startDate")
+	}
+	if task.EndDate.Before(task.StartDate) {
+		erros = append(erros, "StartDate is over then EndDate")
+	}
+	if len(erros) == 0 {
+		return nil
+	}
+	return erros
 }

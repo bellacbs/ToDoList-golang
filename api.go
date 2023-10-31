@@ -119,8 +119,20 @@ func (api *APIServer) createTask(c *gin.Context) {
 		c.JSON(http.StatusConflict, HandleError{Code: http.StatusConflict, Message: missingFields})
 		return
 	}
-
-	fmt.Println(createTaskDTO)
+	user := c.MustGet("user").(UserResponseDTO)
+	if err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, "Internal Error Try again later")
+		return
+	}
+	task := Task{ID: uuid.New(), Title: createTaskDTO.Title, Description: createTaskDTO.Description, StartDate: createTaskDTO.StartDate, EndDate: createTaskDTO.EndDate, UserId: user.ID}
+	errors := task.CheckDates()
+	if errors != nil {
+		c.JSON(http.StatusConflict, HandleError{Code: http.StatusConflict, Message: errors})
+		return
+	}
+	err = api.repository.CreateTask(&task)
+	c.JSON(http.StatusOK, task)
 }
 func (api *APIServer) requireTokenAuthorization() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -147,7 +159,7 @@ func (api *APIServer) requireTokenAuthorization() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		c.Set("user", user)
+		c.Set("user", *user)
 		c.Next()
 	}
 }
